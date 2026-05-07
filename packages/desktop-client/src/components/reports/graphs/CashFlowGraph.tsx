@@ -133,12 +133,14 @@ type CashFlowGraphProps = {
   };
   isConcise: boolean;
   showBalance?: boolean;
+  showTooltip?: boolean;
   style?: CSSProperties;
 };
 export function CashFlowGraph({
   graphData,
   isConcise,
   showBalance = true,
+  showTooltip = true,
   style,
 }: CashFlowGraphProps) {
   const locale = useLocale();
@@ -189,15 +191,17 @@ export function CashFlowGraph({
             onMouseEnter={() => setYAxisIsHovered(true)}
             onMouseLeave={() => setYAxisIsHovered(false)}
           />
-          <Tooltip
-            labelFormatter={x => {
-              return d.format(x, isConcise ? "MMM ''yy" : 'MMM d', {
-                locale,
-              });
-            }}
-            content={<CustomTooltip isConcise={isConcise} format={format} />}
-            isAnimationActive={false}
-          />
+          {showTooltip && (
+            <Tooltip
+              labelFormatter={x => {
+                return d.format(x, isConcise ? "MMM ''yy" : 'MMM d', {
+                  locale,
+                });
+              }}
+              content={<CustomTooltip isConcise={isConcise} format={format} />}
+              isAnimationActive={false}
+            />
+          )}
 
           <ReferenceLine y={0} stroke="#000" />
           <Bar

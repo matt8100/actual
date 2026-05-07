@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useParams } from 'react-router';
 
@@ -6,7 +6,9 @@ import { AlignedText } from '@actual-app/components/aligned-text';
 import { Block } from '@actual-app/components/block';
 import { Button } from '@actual-app/components/button';
 import { useResponsive } from '@actual-app/components/hooks/useResponsive';
+import { Menu } from '@actual-app/components/menu';
 import { Paragraph } from '@actual-app/components/paragraph';
+import { Popover } from '@actual-app/components/popover';
 import { Text } from '@actual-app/components/text';
 import { theme } from '@actual-app/components/theme';
 import { View } from '@actual-app/components/view';
@@ -67,6 +69,47 @@ type CashFlowInnerProps = {
   widget?: CashFlowWidget;
 };
 
+type OptionsButtonProps = {
+  showFullGraph: boolean;
+  onToggleFullGraph: () => void;
+};
+
+function OptionsButton({
+  showFullGraph,
+  onToggleFullGraph,
+}: OptionsButtonProps) {
+  const { t } = useTranslation();
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Button ref={triggerRef} onPress={() => setIsOpen(true)}>
+        <Trans>Options</Trans>
+      </Button>
+      <Popover
+        triggerRef={triggerRef}
+        placement="bottom end"
+        isOpen={isOpen}
+        onOpenChange={() => setIsOpen(false)}
+      >
+        <Menu
+          onMenuSelect={item => {
+            if (item === 'show-full-graph') onToggleFullGraph();
+          }}
+          items={[
+            {
+              name: 'show-full-graph',
+              text: t('Show full graph'),
+              toggle: showFullGraph,
+            },
+          ]}
+        />
+      </Popover>
+    </>
+  );
+}
+
 function CashFlowInner({ widget }: CashFlowInnerProps) {
   const locale = useLocale();
   const dispatch = useDispatch();
@@ -95,6 +138,9 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
   const [mode, setMode] = useState<TimeFrame['mode']>('sliding-window');
   const [showBalance, setShowBalance] = useState(
     widget?.meta?.showBalance ?? true,
+  );
+  const [showFullGraph, setShowFullGraph] = useState(
+    widget?.meta?.showFullGraph ?? false,
   );
   const [latestTransaction, setLatestTransaction] = useState('');
 
@@ -205,6 +251,7 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
               mode,
             },
             showBalance,
+            showFullGraph,
           },
         },
       },
@@ -296,9 +343,15 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
         conditionsOp={conditionsOp}
         onConditionsOpChange={onConditionsOpChange}
       >
-        <Button onPress={() => setShowBalance(state => !state)}>
-          {showBalance ? t('Hide balance') : t('Show balance')}
-        </Button>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <OptionsButton
+            showFullGraph={showFullGraph}
+            onToggleFullGraph={() => setShowFullGraph(state => !state)}
+          />
+
+          <Button onPress={() => setShowBalance(state => !state)}>
+            {showBalance ? t('Hide balance') : t('Show balance')}
+          </Button>
 
         {widget && (
           <Button variant="primary" onPress={onSaveWidget}>

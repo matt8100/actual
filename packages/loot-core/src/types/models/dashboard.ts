@@ -58,6 +58,7 @@ export type CashFlowWidget = AbstractWidget<
     conditionsOp?: 'and' | 'or';
     timeFrame?: TimeFrame;
     showBalance?: boolean;
+    showFullGraph?: boolean;
   } | null
 >;
 
