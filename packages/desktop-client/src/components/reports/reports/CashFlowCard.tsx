@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import type { SVGAttributes } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -98,6 +98,70 @@ function CustomLabel({
   );
 }
 
+type CompactCashFlowChartProps = {
+  income: number;
+  expenses: number;
+  incomeLabel: string;
+  expensesLabel: string;
+};
+
+const CompactCashFlowChart = memo(function CompactCashFlowChart({
+  income,
+  expenses,
+  incomeLabel,
+  expensesLabel,
+}: CompactCashFlowChartProps) {
+  const animationProps = useRechartsAnimation();
+
+  return (
+    <Container style={{ height: 'auto', flex: 1 }}>
+      {(width, height) => (
+        <BarChart
+          responsive
+          width={width}
+          height={height}
+          data={[
+            {
+              income,
+              expenses,
+            },
+          ]}
+          margin={{
+            top: 10,
+            bottom: 0,
+          }}
+        >
+          <Bar
+            dataKey="income"
+            fill={theme.reportsNumberPositive}
+            barSize={14}
+            {...animationProps}
+          >
+            <LabelList
+              dataKey="income"
+              position="left"
+              content={<CustomLabel name={incomeLabel} />}
+            />
+          </Bar>
+
+          <Bar
+            dataKey="expenses"
+            fill={theme.reportsNumberNegative}
+            barSize={14}
+            {...animationProps}
+          >
+            <LabelList
+              dataKey="expenses"
+              position="right"
+              content={<CustomLabel name={expensesLabel} />}
+            />
+          </Bar>
+        </BarChart>
+      )}
+    </Container>
+  );
+});
+
 type CashFlowCardProps = {
   widgetId: string;
   isEditing?: boolean;
@@ -147,7 +211,6 @@ export function CashFlowCard({
   const { t } = useTranslation();
   const locale = useLocale();
   const format = useFormat();
-  const animationProps = useRechartsAnimation();
   const [latestTransaction, setLatestTransaction] = useState<string>('');
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
 
@@ -260,51 +323,12 @@ export function CashFlowCard({
               style={{ height: 'auto', flex: 1 }}
             />
           ) : (
-            <Container style={{ height: 'auto', flex: 1 }}>
-              {(width, height) => (
-                <BarChart
-                  responsive
-                  width={width}
-                  height={height}
-                  data={[
-                    {
-                      income,
-                      expenses,
-                    },
-                  ]}
-                  margin={{
-                    top: 10,
-                    bottom: 0,
-                  }}
-                >
-                  <Bar
-                    dataKey="income"
-                    fill={theme.reportsNumberPositive}
-                    barSize={14}
-                    {...animationProps}
-                  >
-                    <LabelList
-                      dataKey="income"
-                      position="left"
-                      content={<CustomLabel name={t('Income')} />}
-                    />
-                  </Bar>
-
-                  <Bar
-                    dataKey="expenses"
-                    fill={theme.reportsNumberNegative}
-                    barSize={14}
-                    {...animationProps}
-                  >
-                    <LabelList
-                      dataKey="expenses"
-                      position="right"
-                      content={<CustomLabel name={t('Expenses')} />}
-                    />
-                  </Bar>
-                </BarChart>
-              )}
-            </Container>
+            <CompactCashFlowChart
+              income={income}
+              expenses={expenses ?? 0}
+              incomeLabel={t('Income')}
+              expensesLabel={t('Expenses')}
+            />
           )
         ) : (
           <LoadingIndicator />
